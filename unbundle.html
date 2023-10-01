@@ -1,0 +1,103 @@
+<head>
+  <title>Bundle Explorer - Agoric</title>
+  <style>
+    .report {
+      border-collapse: collapse;
+      font-family: sans-serif;
+    }
+    .report tr:nth-child(odd) {
+      background-color: #fff;
+    }
+
+    .report tr:nth-child(even) {
+      background-color: #eee;
+    }
+    th,
+    td {
+      border: 1px solid black;
+      padding: 4px;
+    }
+  </style>
+</head>
+<h1>Agoric Bundle Explorer</h1>
+<fieldset>
+  <label
+    >txHash: <small><input name="txHash"/></small
+  ></label>
+  <small>of InstallBundle tx</small>
+  <br />
+  <label
+    >node: <input name="node" value="devnet.api.agoric.net" readonly
+  /></label>
+  <small><em>TODO: support other nodes</em></small>
+  <br />
+  <button type="button" onclick="explore()">Explore</button>
+</fieldset>
+
+<section id="sec-compartments">
+  <h2>Compartments</h2>
+  <label>entry: <input name="entry" readonly size="120"/></label>
+</section>
+
+<section>
+  <h2>Modules</h2>
+  <table class="report">
+    <thead>
+      <tr>
+        <th>Size</th>
+        <th>Module</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</section>
+
+<body>
+  <script type="module">
+    import { Cosmos, Agoric } from './unbundle.js';
+
+    const { entries } = Object;
+    const $ = document.querySelector.bind(document);
+    const elt = (tag, attrs = {}, children = []) => {
+      const it = document.createElement(tag);
+      entries(attrs).forEach(([name, value]) => it.setAttribute(name, value));
+      children.forEach(ch => {
+        if (typeof ch === 'string') {
+          it.appendChild(document.createTextNode(ch));
+        } else {
+          it.appendChild(ch);
+        }
+      });
+      return it;
+    };
+
+    const explore = async () => {
+      console.log('explore');
+      const txHash = $('input[name="txHash"]').value;
+      const [m0] = await Cosmos.txMessages(txHash);
+      const bundle = await Agoric.getBundle(m0);
+      const loader = await Agoric.getZipLoader(bundle);
+
+      const cmap = loader.extractAsJSON('compartment-map.json');
+      $('input[name="entry"]').value = JSON.stringify(cmap.entry);
+      // TODO: cmap.compartments
+      // cmap.tags ???
+
+      const { files } = loader;
+
+      const tbody = $('tbody');
+      for (const name of Object.keys(files)) {
+        const size = loader.extractAsText(name).length;
+        console.log(size, name);
+        const row = elt('tr', {}, [
+          elt('td', {}, [`${size}`]),
+          elt('td', {}, [name]),
+        ]);
+        tbody.appendChild(row);
+      }
+    };
+
+    // "export"
+    Object.assign(globalThis, { explore });
+  </script>
+</body>
