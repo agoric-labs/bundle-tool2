@@ -44,7 +44,7 @@ export const Agoric = {
     if (!('moduleFormat' in bundle)) {
       throw Error('no moduleFormat');
     }
-    return bundle;
+    return { bundle, size };
   },
   getZipLoader: async bundle => {
     const { moduleFormat } = bundle;

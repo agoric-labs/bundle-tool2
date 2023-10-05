@@ -26,12 +26,23 @@
   ></label>
   <small>of InstallBundle tx</small>
   <br />
-  <label
-    >node: <input name="node" value="devnet.api.agoric.net" readonly
-  /></label>
-  <small><em>TODO: support other nodes</em></small>
+  <label>node: <input name="node" value="devnet.api.agoric.net"/></label>
   <br />
   <button type="button" onclick="explore()">Explore</button>
+
+  <hr />
+  <label>stored size: <input name="storedSize" readonly /> bytes</label>
+  <br />
+
+  <label
+    >storage price:
+    <input name="storagePrice" value="0.002" readonly /> IST/byte</label
+  >
+  <small><em>(TODO: fetch dynamically from chain)</em></small>
+  <br />
+
+  <label>storage cost: <input name="storageFee" readonly /> IST</label>
+  <br />
 </fieldset>
 
 <section id="sec-compartments">
@@ -74,8 +85,14 @@
     const explore = async () => {
       console.log('explore');
       const txHash = $('input[name="txHash"]').value;
-      const [m0] = await Cosmos.txMessages(txHash);
-      const bundle = await Agoric.getBundle(m0);
+      const node = $('input[name="node"]').value;
+      const [m0] = await Cosmos.txMessages(txHash, node);
+      const { bundle, size: storedSize } = await Agoric.getBundle(m0);
+
+      const storagePrice = parseFloat($('input[name="storagePrice"]').value);
+      $('input[name="storedSize"]').value = storedSize;
+      $('input[name="storageFee"]').value = storedSize * storagePrice;
+
       const loader = await Agoric.getZipLoader(bundle);
 
       const cmap = loader.extractAsJSON('compartment-map.json');
@@ -86,6 +103,7 @@
       const { files } = loader;
 
       const tbody = $('tbody');
+      let totalSize = 0;
       for (const name of Object.keys(files)) {
         const size = loader.extractAsText(name).length;
         console.log(size, name);
@@ -94,6 +112,7 @@
           elt('td', {}, [name]),
         ]);
         tbody.appendChild(row);
+        totalSize += size;
       }
     };
 
