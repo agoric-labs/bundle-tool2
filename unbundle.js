@@ -30,6 +30,15 @@ export const Cosmos = {
 };
 
 export const Agoric = {
+  queryBundleInstalls: (node, action = 'agoric.swingset.MsgInstallBundle') =>
+    // "accept: application/json"?
+    fetch(
+      `https://${node}/tx_search?query="message.action='/${action}'"&prove=false&page=1&per_page=1&order_by="desc"&match_events=true`,
+    )
+      // TODO: non-ok statuses
+      .then(res => res.json())
+      // { hash, height, index }
+      .then(obj => obj),
   getBundle: async msg => {
     if (!('compressed_bundle' in msg)) {
       throw Error('no compressed_bundle - TODO: uncompressed bundle support');

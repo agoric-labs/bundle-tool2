@@ -28,9 +28,13 @@
   <br />
   <label>node: <input name="node" value="devnet.api.agoric.net"/></label>
   <br />
-  <button type="button" onclick="explore()">Explore</button>
+  <button type="button" onclick="exporeTx()">Explore</button>
 
   <hr />
+  <label
+    >sha512: <small><input name="sha512" size="128" readonly/></small
+  ></label>
+  <br />
   <label>stored size: <input name="storedSize" readonly /> bytes</label>
   <br />
 
@@ -51,7 +55,7 @@
 </section>
 
 <section>
-  <h2>Modules</h2>
+  <h2>Files</h2>
   <table class="report">
     <thead>
       <tr>
@@ -66,29 +70,26 @@
 <body>
   <script type="module">
     import { Cosmos, Agoric } from './unbundle.js';
+    import { makeDocTools } from './docTools.js';
 
     const { entries } = Object;
-    const $ = document.querySelector.bind(document);
-    const elt = (tag, attrs = {}, children = []) => {
-      const it = document.createElement(tag);
-      entries(attrs).forEach(([name, value]) => it.setAttribute(name, value));
-      children.forEach(ch => {
-        if (typeof ch === 'string') {
-          it.appendChild(document.createTextNode(ch));
-        } else {
-          it.appendChild(ch);
-        }
-      });
-      return it;
+    const { $, $field, elt, setChoices } = makeDocTools(document);
+
+    const queryInstallBundleTxs = async () => {
+      const node = $field('node').value;
+      const txs = await Agoric.queryBundleInstalls(node);
+      console.log('query', txs);
+      setChoices($field('txCandidates'), txs, 'txHash', 'txHash');
     };
 
-    const explore = async () => {
+    const exporeTx = async () => {
       console.log('explore');
       const txHash = $('input[name="txHash"]').value;
       const node = $('input[name="node"]').value;
       const [m0] = await Cosmos.txMessages(txHash, node);
       const { bundle, size: storedSize } = await Agoric.getBundle(m0);
-
+      const { endoZipBase64Sha512: sha512 } = bundle;
+      $('input[name="sha512"]').value = sha512;
       const storagePrice = parseFloat($('input[name="storagePrice"]').value);
       $('input[name="storedSize"]').value = storedSize;
       $('input[name="storageFee"]').value = storedSize * storagePrice;
@@ -117,6 +118,6 @@
     };
 
     // "export"
-    Object.assign(globalThis, { explore });
+    Object.assign(globalThis, { queryInstallBundleTxs, exporeTx });
   </script>
 </body>
