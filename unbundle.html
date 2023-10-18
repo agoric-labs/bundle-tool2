@@ -5,6 +5,7 @@
       border-collapse: collapse;
       font-family: sans-serif;
     }
+
     .report tr:nth-child(odd) {
       background-color: #fff;
     }
@@ -12,6 +13,7 @@
     .report tr:nth-child(even) {
       background-color: #eee;
     }
+
     th,
     td {
       border: 1px solid black;
@@ -21,27 +23,27 @@
 </head>
 <h1>Agoric Bundle Explorer</h1>
 <fieldset>
-  <label
-    >txHash: <small><input name="txHash"/></small
-  ></label>
+  <legend>Explore Transaction</legend>
+  <label>txHash: <small><input name="txHash" /></small></label>
   <small>of InstallBundle tx</small>
   <br />
-  <label>node: <input name="node" value="devnet.api.agoric.net"/></label>
+  <label>node: <input name="node" value="devnet.api.agoric.net" /></label>
   <br />
   <button type="button" onclick="exporeTx()">Explore</button>
-
-  <hr />
-  <label
-    >sha512: <small><input name="sha512" size="128" readonly/></small
-  ></label>
+</fieldset>
+<fieldset>
+  <legend>Explore File</legend>
+  <label title="endoZipBase64 in .json format">File: <input type="file" name="bundleFile"
+      onchange="exploreFile()" /></small></label>
+</fieldset>
+<fieldset>
+  <label>sha512: <small><input name="sha512" size="128" readonly /></small></label>
   <br />
   <label>stored size: <input name="storedSize" readonly /> bytes</label>
   <br />
 
-  <label
-    >storage price:
-    <input name="storagePrice" value="0.002" readonly /> IST/byte</label
-  >
+  <label>storage price:
+    <input name="storagePrice" value="0.002" readonly /> IST/byte</label>
   <small><em>(TODO: fetch dynamically from chain)</em></small>
   <br />
 
@@ -51,7 +53,7 @@
 
 <section id="sec-compartments">
   <h2>Compartments</h2>
-  <label>entry: <input name="entry" readonly size="120"/></label>
+  <label>entry: <input name="entry" readonly size="120" /></label>
 </section>
 
 <section>
@@ -82,12 +84,33 @@
       setChoices($field('txCandidates'), txs, 'txHash', 'txHash');
     };
 
+    const fileInput = $field('bundleFile');
+
+    const exploreFile = async () => {
+      console.log('exploreFile', fileInput);
+
+      console.log('files chosen', fileInput.files)
+      const [file] = fileInput.files;
+
+      if (file) {
+        const text = await file.text();
+        console.log('File:', text.length, text.slice(0, 80));
+        const bundle = JSON.parse(text);
+        const storedSize = text.length;
+        exploreBundle(bundle, storedSize);
+      }
+    }
+
     const exporeTx = async () => {
       console.log('explore');
       const txHash = $('input[name="txHash"]').value;
       const node = $('input[name="node"]').value;
       const [m0] = await Cosmos.txMessages(txHash, node);
       const { bundle, size: storedSize } = await Agoric.getBundle(m0);
+      await exploreBundle(bundle, storedSize);
+    };
+
+    const exploreBundle = async (bundle, storedSize) => {
       const { endoZipBase64Sha512: sha512 } = bundle;
       $('input[name="sha512"]').value = sha512;
       const storagePrice = parseFloat($('input[name="storagePrice"]').value);
@@ -118,6 +141,6 @@
     };
 
     // "export"
-    Object.assign(globalThis, { queryInstallBundleTxs, exporeTx });
+    Object.assign(globalThis, { queryInstallBundleTxs, exploreFile, exporeTx });
   </script>
 </body>
