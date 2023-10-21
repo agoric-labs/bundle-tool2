@@ -38,17 +38,19 @@ export const makeDocTools = document => {
   /**
    * @template {string} LP
    * @template {string} VP
-   * 
-   * @param {SelectElement} selectElt 
-   * @param {Array<Record<LP|VP, string>>} choices 
-   * @param {LP} labelProp 
-   * @param {VP} valueProp 
+   *
+   * @param {SelectElement} selectElt
+   * @param {Array<Record<LP|VP, string>>} choices
+   * @param {LP} labelProp
+   * @param {VP} valueProp
    */
   const setChoices = (selectElt, choices, labelProp, valueProp) => {
     selectElt.innerHTML = '';
     choices.forEach(item => {
-        const option = elt('option', {value: item[valueProp]}, [item[labelProp]]);
-    })
-  }
+      const option = elt('option', { value: item[valueProp] }, [
+        item[labelProp],
+      ]);
+    });
+  };
   return { elt, $, $field, setChoices };
 };

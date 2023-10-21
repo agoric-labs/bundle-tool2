@@ -1,9 +1,18 @@
-/* global fetch, DecompressionStream, Response, FileReader */
+/* global fetch, DecompressionStream, Response */
+// @ts-check
 import ZipLoader from 'https://esm.sh/zip-loader@1.2.0';
+import { MsgInstallBundle } from 'https://esm.sh/@agoric/cosmic-proto/swingset/msgs.js';
 
 export const Browser = {
+  /**
+   * @param {string} base64 
+   * @param {string} [type] 
+   */
   toBlob: (base64, type = 'application/octet-stream') =>
     fetch(`data:${type};base64,${base64}`).then(res => res.blob()),
+  /**
+   * @param {Blob} blob 
+   */
   decompressBlob: async blob => {
     const ds = new DecompressionStream('gzip');
     const decompressedStream = blob.stream().pipeThrough(ds);
@@ -18,8 +27,18 @@ const logged = label => x => {
 };
 
 export const Cosmos = {
+  /**
+   * @param {string} txHash 
+   * @param {string} [node] - LCD API hostname 
+   * @returns 
+   */
   txURL: (txHash, node = 'devnet.api.agoric.net') =>
     `https://${node}/cosmos/tx/v1beta1/txs/${txHash}`,
+  /**
+   * @param {string} txHash 
+   * @param {string} [node] - LCD API hostname 
+   * @returns 
+   */
   txMessages: (txHash, node = 'devnet.api.agoric.net') =>
     fetch(Cosmos.txURL(txHash, node))
       .then(res => {
@@ -30,6 +49,11 @@ export const Cosmos = {
 };
 
 export const Agoric = {
+    /**
+     * @param {string} node - LCD API hostname 
+     * @param {string} [action]
+     */
+
   queryBundleInstalls: (node, action = 'agoric.swingset.MsgInstallBundle') =>
     // "accept: application/json"?
     fetch(
@@ -62,4 +86,17 @@ export const Agoric = {
     const zipBlob = await Browser.toBlob(endoZipBase64);
     return ZipLoader.unzip(zipBlob);
   },
+  makeInstallBundleMessage = (x) => {
+    new MsgInstallBundle()
+
+    const msg1 = {
+      typeUrl: SwingsetMsgs.MsgInstallBundle.typeUrl,
+      value: {
+        address: b64address,
+        nickname: 'my wallet',
+        powerFlags: [PowerFlags.SMART_WALLET],
+        submitter: b64address,
+      },
+    };
+  }
 };
