@@ -1,19 +1,20 @@
 /* global fetch, DecompressionStream, Response */
 // @ts-check
-import ZipLoader from "https://esm.sh/zip-loader@1.2.0";
-import { MsgInstallBundle } from "https://esm.sh/@agoric/cosmic-proto/swingset/msgs.js";
+import ZipLoader from "zip-loader";
+// import { MsgInstallBundle } from "@agoric/cosmic-proto/swingset/msgs.js";
+import { EndoBundle } from "./EndoBundle.ts";
 
 export const Browser = {
   /**
    * @param {string} base64
    * @param {string} [type]
    */
-  toBlob: (base64, type = "application/octet-stream") =>
+  toBlob: (base64: string, type = "application/octet-stream") =>
     fetch(`data:${type};base64,${base64}`).then((res) => res.blob()),
   /**
    * @param {Blob} blob
    */
-  decompressBlob: async (blob) => {
+  decompressBlob: async (blob: Blob) => {
     const ds = new DecompressionStream("gzip");
     const decompressedStream = blob.stream().pipeThrough(ds);
     const r = await new Response(decompressedStream).blob();
@@ -21,25 +22,17 @@ export const Browser = {
   },
 };
 
-const logged = (label) => (x) => {
-  console.log(label, x);
-  return x;
-};
+const logged =
+  (label: string) =>
+  <T>(x: T) => {
+    console.log(label, x);
+    return x;
+  };
 
 export const Cosmos = {
-  /**
-   * @param {string} txHash
-   * @param {string} [node] - LCD API hostname
-   * @returns
-   */
-  txURL: (txHash, node = "devnet.api.agoric.net") =>
+  txURL: (txHash: string, node = "devnet.api.agoric.net") =>
     `https://${node}/cosmos/tx/v1beta1/txs/${txHash}`,
-  /**
-   * @param {string} txHash
-   * @param {string} [node] - LCD API hostname
-   * @returns
-   */
-  txMessages: (txHash, node = "devnet.api.agoric.net") =>
+  txMessages: (txHash: string, node = "devnet.api.agoric.net") =>
     fetch(Cosmos.txURL(txHash, node))
       .then((res) => {
         console.log("status", res.status);
@@ -49,12 +42,10 @@ export const Cosmos = {
 };
 
 export const Agoric = {
-  /**
-   * @param {string} node - LCD API hostname
-   * @param {string} [action]
-   */
-
-  queryBundleInstalls: (node, action = "agoric.swingset.MsgInstallBundle") =>
+  queryBundleInstalls: (
+    node: string,
+    action = "agoric.swingset.MsgInstallBundle"
+  ) =>
     // "accept: application/json"?
     fetch(
       `https://${node}/tx_search?query="message.action='/${action}'"&prove=false&page=1&per_page=1&order_by="desc"&match_events=true`
@@ -63,7 +54,7 @@ export const Agoric = {
       .then((res) => res.json())
       // { hash, height, index }
       .then((obj) => obj),
-  getBundle: async (msg) => {
+  getBundle: async (msg: any) => {
     if (!("compressed_bundle" in msg)) {
       throw Error("no compressed_bundle - TODO: uncompressed bundle support");
     }
@@ -81,7 +72,7 @@ export const Agoric = {
     }
     return { bundle, size };
   },
-  getZipLoader: async (bundle) => {
+  getZipLoader: async (bundle: EndoBundle) => {
     const { moduleFormat } = bundle;
     console.log(moduleFormat, "TODO: check for endo type");
     const { endoZipBase64 } = bundle;
