@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@agoric/cosmic-proto": "^0.3.0",
-    "@lit/context": "^1.0.0",
     "@lit/task": "^1.0.0",
     "lit": "^2.7.6",
     "zip-loader": "^1.2.0"
