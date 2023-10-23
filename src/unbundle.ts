@@ -35,7 +35,8 @@ export const Cosmos = {
   txMessages: (txHash: string, node = "devnet.api.agoric.net") =>
     fetch(Cosmos.txURL(txHash, node))
       .then((res) => {
-        console.log("status", res.status);
+        console.log("status", res.status, res.statusText);
+        if (!res.ok) throw Error(`${res.status}: ${res.statusText}`);
         return res.json();
       })
       .then((j) => j.tx.body.messages),
@@ -60,17 +61,13 @@ export const Agoric = {
     }
     const { compressed_bundle: b64gzip, uncompressed_size: size } = msg;
     const gzipBlob = await Browser.toBlob(b64gzip);
-    const fullText = await Browser.decompressBlob(gzipBlob).then((b) =>
+    const bundleText = await Browser.decompressBlob(gzipBlob).then((b) =>
       b.text()
     );
-    if (fullText.length !== parseInt(size, 10)) {
+    if (bundleText.length !== parseInt(size, 10)) {
       throw Error("bundle size mismatch");
     }
-    const bundle = JSON.parse(fullText);
-    if (!("moduleFormat" in bundle)) {
-      throw Error("no moduleFormat");
-    }
-    return { bundle, size };
+    return { bundleText, size };
   },
   getZipLoader: async (bundle: EndoBundle) => {
     const { moduleFormat } = bundle;
