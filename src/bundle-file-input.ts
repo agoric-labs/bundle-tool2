@@ -1,7 +1,5 @@
 import { LitElement, html } from "lit";
 import { customElement, property } from "lit/decorators.js";
-import { bundleContext } from "./ctx/bundle-ctx.js";
-import { ContextProvider } from "@lit/context";
 
 @customElement("bundle-file")
 export class BundleFileInput extends LitElement {
