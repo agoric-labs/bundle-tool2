@@ -9,7 +9,7 @@ export class BundleExplorer extends LitElement {
   constructor() {
     super();
     this.addEventListener("set-bundle", (ev) => {
-      const bundleText = ev.target?.bundleText;
+      const bundleText = (ev.target as any)?.bundleText; // TODO: type
       console.log("set-bundle", ev, bundleText.slice(0, 60));
       this.bundleText = bundleText;
     });

@@ -22,7 +22,7 @@ export const Browser = {
   },
 };
 
-const logged =
+export const logged =
   (label: string) =>
   <T>(x: T) => {
     console.log(label, x);
