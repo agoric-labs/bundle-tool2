@@ -64,6 +64,15 @@ export class BundleInfo extends LitElement {
     return html`<fieldset>
         <legend>Bundle Info</legend>
         <label
+          >entry:
+          <input
+            name="entry"
+            readonly
+            size="120"
+            value=${JSON.stringify(this.entry)}
+        /></label>
+        <br />
+        <label
           >sha512:
           <small
             ><input
@@ -92,15 +101,6 @@ export class BundleInfo extends LitElement {
           <input name="storageCost" readonly value=${this.storageCost || ""} />
           IST</label
         >
-        <br />
-        <label
-          >entry:
-          <input
-            name="entry"
-            readonly
-            size="120"
-            value=${JSON.stringify(this.entry)}
-        /></label>
       </fieldset>
 
       <file-list files=${JSON.stringify(this.files)}></file-list>`;
