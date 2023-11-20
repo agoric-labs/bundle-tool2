@@ -74,7 +74,8 @@ export const Agoric = {
     console.log(moduleFormat, "TODO: check for endo type");
     const { endoZipBase64 } = bundle;
     const zipBlob = await Browser.toBlob(endoZipBase64);
-    return ZipLoader.unzip(zipBlob);
+    const loader = await ZipLoader.unzip(zipBlob);
+    return { zipBlob, loader };
   },
   // makeInstallBundleMessage: (x) => {
   //   new MsgInstallBundle();

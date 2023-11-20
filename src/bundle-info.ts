@@ -3,6 +3,17 @@ import { customElement, property } from "lit/decorators.js";
 
 import { Agoric } from "./unbundle.ts";
 import { EndoBundle } from "./EndoBundle.ts";
+import { makeFileResource } from "./fetchFile.ts";
+
+const fileName = (
+  entry: { compartment: string; module: string },
+  hash: string,
+  ext = ".zip"
+) =>
+  `${entry?.compartment}-${entry?.module}-${hash.slice(0, 5)}${ext}`.replace(
+    /[/]+/g,
+    "-"
+  );
 
 @customElement("bundle-info")
 export class BundleInfo extends LitElement {
@@ -30,6 +41,8 @@ export class BundleInfo extends LitElement {
   @property({ type: Object, attribute: false })
   public files: [name: string, detail: { size: number }][] = [];
 
+  zipFile = makeFileResource("bundle.zip");
+
   async willUpdate(delta: PropertyValues<this>) {
     console.log("@@willUpdate", delta);
     if (!delta.has("bundleText")) return;
@@ -44,7 +57,10 @@ export class BundleInfo extends LitElement {
     }
     this.bundle = bundle;
     this.sha512 = bundle.endoZipBase64Sha512;
-    const loader = await Agoric.getZipLoader(bundle);
+    const { zipBlob, loader } = await Agoric.getZipLoader(bundle);
+    console.log("zipBlob", zipBlob.size);
+    await this.zipFile.then((z) => z.setBody(zipBlob));
+    console.log("setBody done");
     const cmap = loader.extractAsJSON("compartment-map.json");
     this.entry = cmap.entry;
 
@@ -103,6 +119,13 @@ export class BundleInfo extends LitElement {
         >
       </fieldset>
 
+      <section>
+        ${this.entry &&
+        this.sha512 &&
+        html`<a href="/pub/${fileName(this.entry, this.sha512)}"
+          >${fileName(this.entry, this.sha512)}</a
+        >`}
+      </section>
       <file-list files=${JSON.stringify(this.files)}></file-list>`;
   }
 }
